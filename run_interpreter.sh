@@ -28,4 +28,4 @@ echo ""
 echo "========================================"
 echo "2. Interpretando com Julia..."
 echo "========================================"
-./.julia-dist/bin/julia --project src/interprete.jl codigo_simplificado.json
+julia --project=. src/interprete.jl codigo_simplificado.json

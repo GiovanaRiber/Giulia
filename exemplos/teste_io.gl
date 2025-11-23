@@ -1,0 +1,19 @@
+int main() {
+    printf("Bem-vindo à calculadora MiniC!");
+    
+    printf("Digite o primeiro número:");
+    int a = scanf();
+    
+    printf("Digite o segundo número:");
+    int b = scanf();
+    
+    int soma = a + b;
+    
+    printf("A soma é:", soma);
+    
+    if (soma > 100) {
+        printf("Uau! Um número grande!");
+    }
+    
+    return 0;
+}

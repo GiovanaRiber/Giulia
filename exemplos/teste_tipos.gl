@@ -1,0 +1,33 @@
+// Função void: Apenas faz algo, não retorna valor
+void saudacao() {
+    printf("--- Teste de Tipos ---");
+}
+
+float area_circulo(float raio) {
+    float pi = 3.14159;
+    return pi * raio * raio;
+}
+
+int main() {
+    saudacao(); // Chamada void
+
+    // Teste de INT (Truncamento)
+    // Em C, isso vira 5. No nosso interpretador, forçamos virar 5.
+    int inteiro = 5.99; 
+    printf("Inteiro (5.99 virou):", inteiro);
+
+    // Teste de FLOAT
+    float quebrado = 2.5;
+    float area = area_circulo(quebrado);
+    printf("Area do circulo (raio 2.5):", area);
+
+    // Teste de DOUBLE (funciona igual float no nosso Julia)
+    double preciso = 10.12345;
+    printf("Double:", preciso);
+    
+    // Teste CHAR
+    char letra = 'A';
+    printf("Letra:", letra);
+
+    return 0;
+}
