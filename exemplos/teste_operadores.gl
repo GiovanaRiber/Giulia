@@ -1,0 +1,32 @@
+int main() {
+    puts("--- Teste de Operadores e I/O ---");
+
+    // 1. Teste de gets e puts
+    puts("Digite seu nome:");
+    int nome = gets(); 
+    
+    printf("Ola", nome);
+
+    // 2. Teste de Operadores Lógicos e Negação (!)
+    puts("Digite um numero (0 para Testar Negacao):");
+    int n = scanf();
+
+    if (!n) { // Equivalente a if (n == 0)
+        puts("Voce digitou ZERO! O operador ! funcionou.");
+    } else {
+        puts("Voce digitou um numero diferente de zero.");
+    }
+
+    // 3. Teste de Módulo (%) e AND (&&)
+    puts("Digite um ano para saber se e bissexto (simplificado):");
+    int ano = scanf();
+
+    // Regra simples: Divisível por 4 E NÃO divisível por 100
+    if ((ano % 4 == 0) && (ano % 100 != 0)) {
+        printf("O ano", ano, "e bissexto!");
+    } else {
+        printf("O ano", ano, "nao e bissexto (ou regra complexa).");
+    }
+
+    return 0;
+}

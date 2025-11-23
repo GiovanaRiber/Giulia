@@ -1,0 +1,13 @@
+int get_valor() {
+    return 50;
+}
+
+int main() {
+    int a = 10;
+    int b = get_valor(); // Chama a outra função!
+    
+    if (b > a) {
+        return b - a; // 50 - 10 = 40
+    }
+    return 0;
+}

@@ -1,0 +1,16 @@
+int obter_incremento() {
+    return 2;
+}
+
+int main() {
+    int i = 0;
+    int total = 0;
+    
+    while (i < 5) {
+        // A cada passo, sai da main, vai na obter_incremento, e volta
+        total = total + obter_incremento(); 
+        i = i + 1;
+    }
+    
+    return total; // 2 + 2 + 2 + 2 + 2 = 10
+}

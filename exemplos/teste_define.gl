@@ -1,0 +1,19 @@
+#define PI 3.14
+#define MAX 10
+#define SAUDACAO "Ola Mundo"
+
+int main() {
+    int valores[MAX]; // Usa no tamanho do array
+    
+    valores[0] = 5;
+    
+    printf(SAUDACAO); // Usa string
+    printf("O valor de PI e:");
+    printf(PI);       // Usa float
+    
+    if (valores[0] < MAX) {
+        printf("Valor dentro do limite");
+    }
+    
+    return 0;
+}

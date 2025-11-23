@@ -1,0 +1,18 @@
+int nivel_3() {
+    return 5;
+}
+
+int nivel_2() {
+    int val = nivel_3();
+    return val * 2; // Retorna 10
+}
+
+int nivel_1() {
+    int val = nivel_2();
+    return val + 20; // Retorna 30
+}
+
+int main() {
+    int res = nivel_1();
+    return res + 100; // Retorna 130
+}

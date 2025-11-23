@@ -1,39 +1,161 @@
 [
   {
     "type": "Function",
-    "name": "main",
-    "returnType": "int",
+    "name": "saudacao",
+    "returnType": "void",
+    "params": [],
+    "body": [
+      {
+        "type": "Call",
+        "callee": "printf",
+        "args": [
+          {
+            "type": "String",
+            "value": "--- Teste de Tipos ---"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "Function",
+    "name": "area_circulo",
+    "returnType": "float",
+    "params": [
+      "raio"
+    ],
     "body": [
       {
         "type": "Declaration",
-        "varType": "int",
-        "name": "a",
-        "value": 5
-      },
-      {
-        "type": "Declaration",
-        "varType": "int",
-        "name": "b",
-        "value": {
-          "type": "BinaryOp",
-          "op": "*",
-          "left": 3,
-          "right": {
-            "type": "BinaryOp",
-            "op": "+",
-            "left": "a",
-            "right": 10
-          }
-        }
+        "varType": "float",
+        "name": "pi",
+        "value": 3.14159,
+        "isArray": false,
+        "size": null
       },
       {
         "type": "Return",
         "value": {
           "type": "BinaryOp",
-          "op": "-",
-          "left": "b",
-          "right": 1
+          "op": "*",
+          "left": {
+            "type": "BinaryOp",
+            "op": "*",
+            "left": "pi",
+            "right": "raio"
+          },
+          "right": "raio"
         }
+      }
+    ]
+  },
+  {
+    "type": "Function",
+    "name": "main",
+    "returnType": "int",
+    "params": [],
+    "body": [
+      {
+        "type": "Call",
+        "callee": "saudacao",
+        "args": []
+      },
+      {
+        "type": "Declaration",
+        "varType": "int",
+        "name": "inteiro",
+        "value": 5.99,
+        "isArray": false,
+        "size": null
+      },
+      {
+        "type": "Call",
+        "callee": "printf",
+        "args": [
+          {
+            "type": "String",
+            "value": "Inteiro (5.99 virou):"
+          },
+          "inteiro"
+        ]
+      },
+      {
+        "type": "Declaration",
+        "varType": "float",
+        "name": "quebrado",
+        "value": 2.5,
+        "isArray": false,
+        "size": null
+      },
+      {
+        "type": "Declaration",
+        "varType": "float",
+        "name": "area",
+        "value": {
+          "type": "Call",
+          "callee": "area_circulo",
+          "args": [
+            "quebrado"
+          ]
+        },
+        "isArray": false,
+        "size": null
+      },
+      {
+        "type": "Call",
+        "callee": "printf",
+        "args": [
+          {
+            "type": "String",
+            "value": "Area do circulo (raio 2.5):"
+          },
+          "area"
+        ]
+      },
+      {
+        "type": "Declaration",
+        "varType": "double",
+        "name": "preciso",
+        "value": 10.12345,
+        "isArray": false,
+        "size": null
+      },
+      {
+        "type": "Call",
+        "callee": "printf",
+        "args": [
+          {
+            "type": "String",
+            "value": "Double:"
+          },
+          "preciso"
+        ]
+      },
+      {
+        "type": "Declaration",
+        "varType": "char",
+        "name": "letra",
+        "value": {
+          "type": "Char",
+          "value": "A"
+        },
+        "isArray": false,
+        "size": null
+      },
+      {
+        "type": "Call",
+        "callee": "printf",
+        "args": [
+          {
+            "type": "String",
+            "value": "Letra:"
+          },
+          "letra"
+        ]
+      },
+      {
+        "type": "Return",
+        "value": 0
       }
     ]
   }

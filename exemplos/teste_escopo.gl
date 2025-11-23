@@ -1,0 +1,18 @@
+int secundaria() {
+    int x = 999; // Variável local da secundária
+    return x;
+}
+
+int main() {
+    int x = 10; // Variável local da main
+    int y = secundaria(); 
+    
+    // Se o escopo estiver quebrado, o x da main terá virado 999.
+    // Se estiver certo, x continua sendo 10.
+    
+    if (x == 10) {
+        return y; // Deve retornar 999
+    } else {
+        return 0; // Erro: x foi alterado indevidamente
+    }
+}

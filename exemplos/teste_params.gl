@@ -1,0 +1,14 @@
+// Função que recebe parâmetros!
+int multiplicar(int a, int b) {
+    return a * b;
+} 
+
+int main() {
+    int x = 5;
+    int y = 4;
+    
+    // Passando variáveis e literais
+    int resultado = multiplicar(x, y + 6); // 5 * 10 = 50
+    
+    return resultado;
+}
