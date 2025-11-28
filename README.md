@@ -1,5 +1,10 @@
 # Giulia - Interpretador de Linguagem
 
+![version](https://img.shields.io/badge/version-0.1.0-blue)
+![language](https://img.shields.io/badge/language-Julia%20%2B%20Python-7957d5)
+![julia](https://img.shields.io/badge/Julia-1.11%2B-brightgreen)
+![antlr](https://img.shields.io/badge/ANTLR-4-orange)
+
 Este projeto implementa um interpretador para a linguagem Giulia (.gl), baseada em um subconjunto de C. O processo ocorre em duas etapas:
 
 1. **Parser Python (ANTLR)**: Analisa o código-fonte Giulia e gera uma AST simplificada em JSON
@@ -38,6 +43,7 @@ julia --project src/interprete.jl codigo_simplificado.json
 - ✅ **float**: números de ponto flutuante
 - ✅ **char**: caracteres individuais (ex: `'A'`, `'b'`)
 - ✅ **arrays**: arrays de tamanho fixo (ex: `int arr[5]`)
+- ✅ **string**: literais de string (ex: "texto")
 
 ### Operadores
 
@@ -45,7 +51,7 @@ julia --project src/interprete.jl codigo_simplificado.json
 
 **Relacionais**: `<`, `>`, `<=`, `>=`, `==`, `!=`
 
-**Lógicos**: `&&`, `||`
+**Lógicos**: `!`, `&&`, `||`
 
 ### Estruturas de Controle
 
@@ -55,6 +61,7 @@ julia --project src/interprete.jl codigo_simplificado.json
 - ✅ **for**: laço com inicialização, condição e incremento
 - ✅ **switch-case**: seleção múltipla com suporte a fall-through e break
 - ✅ **return**: retorno de valores de funções
+- ✅ **funções do usuário**: declaração, chamada e suporte à recursão
 
 ### Verificações em Tempo de Execução
 
@@ -62,6 +69,25 @@ julia --project src/interprete.jl codigo_simplificado.json
 - ✅ **Variáveis não inicializadas**: detecta leitura de variáveis declaradas mas não inicializadas
 - ✅ **Array bounds checking**: detecta acessos fora dos limites do array
 - ✅ **Verificação de tipos**: valida operações sobre tipos incompatíveis (ex: indexar não-array)
+- ✅ **Operações aritméticas**: erro claro quando operandos não são numéricos
+- ✅ **Atribuições numéricas**: `int/float` rejeitam valores não numéricos
+- ✅ **Unions**: erro ao ler campo inativo (somente o campo "ativo" é válido)
+
+### Tipos Compostos e Acesso a Campos
+
+- ✅ **struct**: inicialização posicional, acesso e atribuição a campos (`.`/`->`)
+- ✅ **union**: campo ativo controlado; atribuição ativa um campo e limpa os demais
+
+### I/O e Utilidades
+
+- ✅ **printf**, **puts**: saída
+- ✅ **scanf**, **gets**: entrada
+- ✅ **atoi**, **atof**: conversores de string (leem texto e retornam número)
+
+### Pré-processamento (básico)
+
+- ✅ **#define**: coleta e substituição simples de constantes
+- ✅ **#include "arquivo"**: inclui arquivo relativo e mescla AST
 
 ## Exemplos
 
@@ -120,6 +146,17 @@ int main(void) {
 }
 ```
 
+**Leitura de campo inativo (union):**
+```c
+union U { int i; float f; };
+int main(void) {
+    union U u;
+    u.f = 42.0;
+    printf(u.i);  // ERRO: Leitura de campo inativo em union: ativo='f', lido='i'
+    return 0;
+}
+```
+
 ## Estrutura do Projeto
 
 ```
@@ -166,10 +203,11 @@ julia --project -e 'using Pkg; Pkg.add("JSON")'
 ## Limitações Conhecidas
 
 - Não há suporte para ponteiros
-- Não há suporte para structs/unions
-- Não há suporte para funções além de `main`
 - Strings são tratadas como literais, não como arrays de char mutáveis
-- Não há pré-processador C real (apenas parsing básico de diretivas)
+- Não há pré-processador C real (apenas suporte básico a `#define` e `#include "..."`)
+- Divisão `/` é inteira (comportamento simplificado)
+- Inicializadores com designadores (ex: `{ .campo = valor }`) não são aceitos
+- `#include <...>` (com ângulos) não é suportado; apenas `"arquivo"`
 
 ## Desenvolvimento
 
