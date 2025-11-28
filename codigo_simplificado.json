@@ -1,101 +1,39 @@
 [
   {
     "type": "Function",
-    "name": "saudacao",
-    "returnType": "void",
-    "params": [],
-    "body": [
-      {
-        "type": "Call",
-        "callee": "printf",
-        "args": [
-          {
-            "type": "String",
-            "value": "--- Teste de Tipos ---"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "type": "Function",
-    "name": "area_circulo",
-    "returnType": "float",
-    "params": [
-      "raio"
-    ],
-    "body": [
-      {
-        "type": "Declaration",
-        "varType": "float",
-        "name": "pi",
-        "value": 3.14159,
-        "isArray": false,
-        "size": null
-      },
-      {
-        "type": "Return",
-        "value": {
-          "type": "BinaryOp",
-          "op": "*",
-          "left": {
-            "type": "BinaryOp",
-            "op": "*",
-            "left": "pi",
-            "right": "raio"
-          },
-          "right": "raio"
-        }
-      }
-    ]
-  },
-  {
-    "type": "Function",
     "name": "main",
     "returnType": "int",
     "params": [],
     "body": [
       {
-        "type": "Call",
-        "callee": "saudacao",
-        "args": []
-      },
-      {
         "type": "Declaration",
         "varType": "int",
-        "name": "inteiro",
-        "value": 5.99,
-        "isArray": false,
-        "size": null
-      },
-      {
-        "type": "Call",
-        "callee": "printf",
-        "args": [
-          {
-            "type": "String",
-            "value": "Inteiro (5.99 virou):"
-          },
-          "inteiro"
-        ]
-      },
-      {
-        "type": "Declaration",
-        "varType": "float",
-        "name": "quebrado",
-        "value": 2.5,
-        "isArray": false,
-        "size": null
-      },
-      {
-        "type": "Declaration",
-        "varType": "float",
-        "name": "area",
+        "name": "a",
         "value": {
           "type": "Call",
-          "callee": "area_circulo",
+          "callee": "atoi",
           "args": [
-            "quebrado"
+            {
+              "type": "String",
+              "value": "123"
+            }
+          ]
+        },
+        "isArray": false,
+        "size": null
+      },
+      {
+        "type": "Declaration",
+        "varType": "float",
+        "name": "b",
+        "value": {
+          "type": "Call",
+          "callee": "atof",
+          "args": [
+            {
+              "type": "String",
+              "value": "3.14"
+            }
           ]
         },
         "isArray": false,
@@ -105,52 +43,14 @@
         "type": "Call",
         "callee": "printf",
         "args": [
-          {
-            "type": "String",
-            "value": "Area do circulo (raio 2.5):"
-          },
-          "area"
+          "a"
         ]
-      },
-      {
-        "type": "Declaration",
-        "varType": "double",
-        "name": "preciso",
-        "value": 10.12345,
-        "isArray": false,
-        "size": null
       },
       {
         "type": "Call",
         "callee": "printf",
         "args": [
-          {
-            "type": "String",
-            "value": "Double:"
-          },
-          "preciso"
-        ]
-      },
-      {
-        "type": "Declaration",
-        "varType": "char",
-        "name": "letra",
-        "value": {
-          "type": "Char",
-          "value": "A"
-        },
-        "isArray": false,
-        "size": null
-      },
-      {
-        "type": "Call",
-        "callee": "printf",
-        "args": [
-          {
-            "type": "String",
-            "value": "Letra:"
-          },
-          "letra"
+          "b"
         ]
       },
       {

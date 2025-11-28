@@ -16,6 +16,8 @@ class AstVisitor(MiniCVisitor):
 
     def __init__(self):
         self.defines = {}
+        self.struct_defs = {}
+        self.union_defs = {}
 
     def visitCompilationUnit(self, ctx:MiniCParser.CompilationUnitContext):
         resultados = []
@@ -44,39 +46,39 @@ class AstVisitor(MiniCVisitor):
             self.defines[name] = value
             print(f"🔹 Pré-processador: Definido {name} = {value}")
 
-    # --- CORREÇÃO ROBUSTA DA DEFINIÇÃO DE FUNÇÃO ---
+    # Função: coleta nome, retorno e params
     def visitFunctionDefinition(self, ctx:MiniCParser.FunctionDefinitionContext):
         return_type = self.visit(ctx.typeSpecifier())
         
-        # Função auxiliar para encontrar Nome e Params recursivamente
+        # Aux: nome e parâmetros
         def get_name_and_params(direct_decl_ctx):
             name = None
             params = []
             
-            # 1. Tenta pegar parâmetros neste nível
+            # Parâmetros no nível atual
             if direct_decl_ctx.parameterTypeList():
                 p_list = direct_decl_ctx.parameterTypeList().parameterList()
                 for p in p_list.parameterDeclaration():
-                    # Extrai o nome do parâmetro
+                    # Nome do parâmetro
                     p_decl = p.declarator()
                     p_direct = p_decl.directDeclarator()
-                    # Desce até achar o identificador do parâmetro
+                    # Desce até o identificador
                     while p_direct.directDeclarator():
                         p_direct = p_direct.directDeclarator()
                     params.append(p_direct.Identifier().getText())
             
-            # 2. Verifica se o nome está aqui ou desce mais
+            # Nome local ou do filho
             if direct_decl_ctx.Identifier():
                 name = direct_decl_ctx.Identifier().getText()
             elif direct_decl_ctx.directDeclarator():
                 # Recursão
                 child_name, child_params = get_name_and_params(direct_decl_ctx.directDeclarator())
                 if child_name: name = child_name
-                if child_params: params = child_params # Pega params do filho se existirem
+                if child_params: params = child_params
             
             return name, params
 
-        # Inicia a busca
+        # Busca
         decl_ctx = ctx.declarator().directDeclarator()
         name, params = get_name_and_params(decl_ctx)
         
@@ -89,7 +91,7 @@ class AstVisitor(MiniCVisitor):
             "params": params,
             "body": body
         }
-    # -----------------------------------------------
+    # Fim função
 
     def visitCompoundStatement(self, ctx:MiniCParser.CompoundStatementContext):
         body = []
@@ -138,14 +140,63 @@ class AstVisitor(MiniCVisitor):
                     for it in init.initializerList().initializer():
                         if it.assignmentExpression(): values.append(self.visit(it.assignmentExpression()))
                         else: values.append(None)
-                    value = values
+                    # Normalize type for struct/union mapping
+                    vt = var_type.replace(' ', '')
+                    if vt.startswith('struct'):
+                        # Extract name after 'struct' allowing both 'structX' and 'struct X'
+                        tname = var_type.split(' ', 1)[-1] if ' ' in var_type else vt[len('struct'):]
+                        fields = self.struct_defs.get(tname, [])
+                        if fields:
+                            mapped = {}
+                            for i, fname in enumerate(fields):
+                                if i < len(values): mapped[fname] = values[i]
+                            value = mapped
+                        else:
+                            value = values
+                    elif vt.startswith('union'):
+                        tname = var_type.split(' ', 1)[-1] if ' ' in var_type else vt[len('union'):]
+                        fields = self.union_defs.get(tname, [])
+                        if fields and len(values) > 0:
+                            mapped = {fields[0]: values[0], "_active": fields[0]}
+                            value = mapped
+                        else:
+                            value = values
             return {"type": "Declaration", "varType": var_type, "name": name, "value": value, "isArray": is_array, "size": array_size}
-        elif ctx.declarator():
-             name = ctx.declarator().getText()
-             return {"type": "Declaration", "varType": var_type, "name": name, "value": None}
         return None
 
     def visitTypeSpecifier(self, ctx:MiniCParser.TypeSpecifierContext):
+        # Struct/union com campos
+        if ctx.structOrUnionSpecifier():
+            spec = ctx.structOrUnionSpecifier()
+            su = spec.structOrUnion().getText()  # 'struct' or 'union'
+            name = None
+            fields = []
+            if spec.Identifier():
+                name = spec.Identifier().getText()
+            if spec.structDeclarationList():
+                sdl = spec.structDeclarationList()
+                for sdecl in sdl.structDeclaration():
+                    sdlst = sdecl.structDeclaratorList()
+                    for sd in sdlst.structDeclarator():
+                        d = sd.declarator()
+                        dd = d.directDeclarator()
+                        while dd.directDeclarator():
+                            dd = dd.directDeclarator()
+                        if dd.Identifier():
+                            fields.append(dd.Identifier().getText())
+            if name and fields:
+                if su == 'struct':
+                    self.struct_defs[name] = fields
+                else:
+                    self.union_defs[name] = fields
+            if name:
+                return f"{su} {name}"
+            else:
+                anon_name = f"__anon_{su}_{id(spec)}"
+                if fields:
+                    if su == 'struct': self.struct_defs[anon_name] = fields
+                    else: self.union_defs[anon_name] = fields
+                return f"{su} {anon_name}"
         return ctx.getText()
 
     def visitStatement(self, ctx:MiniCParser.StatementContext):
@@ -292,7 +343,7 @@ class AstVisitor(MiniCVisitor):
         if isinstance(res, str) and res in self.defines:
             return self.defines[res]
         return res
-
+        
     def visitExpression(self, ctx:MiniCParser.ExpressionContext):
         return self.visit(ctx.assignmentExpression(0))
     def visitAssignmentExpression(self, ctx:MiniCParser.AssignmentExpressionContext):
@@ -309,7 +360,6 @@ class AstVisitor(MiniCVisitor):
     def visitLogicalAndExpression(self, ctx:MiniCParser.LogicalAndExpressionContext):
         if ctx.getChildCount() == 3: return {"type": "BinaryOp", "op": "&&", "left": self.visit(ctx.getChild(0)), "right": self.visit(ctx.getChild(2))}
         return self.visit(ctx.inclusiveOrExpression(0))
-    def visitInclusiveOrExpression(self, ctx:MiniCParser.InclusiveOrExpressionContext): return self.visit(ctx.exclusiveOrExpression(0))
     def visitExclusiveOrExpression(self, ctx:MiniCParser.ExclusiveOrExpressionContext): return self.visit(ctx.andExpression(0))
     def visitAndExpression(self, ctx:MiniCParser.AndExpressionContext): return self.visit(ctx.equalityExpression(0))
     def visitEqualityExpression(self, ctx:MiniCParser.EqualityExpressionContext):
@@ -338,7 +388,7 @@ class AstVisitor(MiniCVisitor):
         return result
     def visitCastExpression(self, ctx:MiniCParser.CastExpressionContext): return self.visit(ctx.unaryExpression())
     
-    # --- CORREÇÃO UNARY EXPRESSION ---
+    # Unary expression
     def visitUnaryExpression(self, ctx:MiniCParser.UnaryExpressionContext):
         if ctx.unaryOperator():
             op = ctx.unaryOperator().getText()
@@ -369,6 +419,12 @@ class AstVisitor(MiniCVisitor):
                     i += 3
                 else: i += 2
                 node = {"type": "Call", "callee": func_name, "args": args}
+                continue
+            elif txt == '.' or txt == '->':
+                # Acesso de campo
+                field_ident = ctx.getChild(i+1).getText()
+                node = {"type": "FieldAccess", "object": node, "field": field_ident}
+                i += 2
                 continue
             i += 1
         return node

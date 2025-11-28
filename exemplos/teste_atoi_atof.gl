@@ -1,0 +1,11 @@
+int main() {
+  int a = atoi("123");
+  float b = atof("3.14");
+  printf(a);
+  printf(b);
+  // invalid cases
+  // should trigger friendly errors when uncommented
+  // int c = atoi("abc");
+  // float d = atof("x.y");
+  return 0;
+}

@@ -1,0 +1,10 @@
+struct P { int a; int b; };
+
+int main() {
+    struct P p = { 10, 20 };
+    printf(p.a);
+    printf(p.b);
+    p.a = p.a + 5;
+    printf(p.a);
+    return p.a;
+}

@@ -1,16 +1,16 @@
 # src/interprete.jl - VERSÃO FINAL (COMPLETA)
 using JSON
 
-# Guarda as definições das funções
+# Tabela de funções
 const tabela_de_funcoes = Dict{String, Any}()
 
 # Função que calcula o valor de uma expressão
 function avaliar_expressao(expr_json, env)
     
-    # Caso 1: Literal
+    # Literal
     if isa(expr_json, Number) return expr_json end
 
-    # Caso 2: Variável
+    # Variável
     if isa(expr_json, String)
         if haskey(env, expr_json)
             val = env[expr_json]
@@ -21,20 +21,19 @@ function avaliar_expressao(expr_json, env)
         end
     end
 
-    # Caso 3: Objetos complexos
+    # Nós compostos
     if isa(expr_json, AbstractDict)
         t = get(expr_json, "type", nothing)
 
         if t == "String" || t == "Char"
             return expr_json["value"]
 
-        # --- OPERADORES UNÁRIOS (!, -) ---
+        # Unário (!, -, +)
         elseif t == "UnaryOp"
             op = expr_json["op"]
             val = avaliar_expressao(expr_json["expr"], env)
             
             if op == "!"  
-                # Negação Lógica (0 -> 1, Outros -> 0)
                 return (val == 0 || val == false) ? 1 : 0
             elseif op == "-" 
                 return -val
@@ -44,7 +43,7 @@ function avaliar_expressao(expr_json, env)
                 error("Operador unário não suportado: $op") 
             end
 
-        # --- OPERADORES BINÁRIOS ---
+        # Binário
         elseif t == "BinaryOp"
             op = expr_json["op"]
             left = avaliar_expressao(expr_json["left"], env)
@@ -65,32 +64,56 @@ function avaliar_expressao(expr_json, env)
             elseif op == "||" return (left!=0) || (right!=0)
             else error("Operador desconhecido: $op") end
 
-        # --- CHAMADA DE FUNÇÃO (COM I/O) ---
+        # Chamada de função
         elseif t == "Call"
             func_name = expr_json["callee"]
             args_exprs = expr_json["args"]
             vals_args = [avaliar_expressao(arg, env) for arg in args_exprs]
 
-            # Funções Nativas (I/O)
+            # Nativas
             if func_name == "printf"
-                print("💻 ")
                 for v in vals_args print(v, " ") end
                 println("")
                 return 0
 
             elseif func_name == "puts"
-                print("💻 ")
                 if length(vals_args) > 0 println(vals_args[1]) else println("") end
                 return 0
 
+            elseif func_name == "atoi"
+                if length(vals_args) != 1
+                    error("Função atoi espera 1 argumento")
+                end
+                s = vals_args[1]
+                if !(s isa String)
+                    error("atoi: argumento deve ser String, recebido $(typeof(s))")
+                end
+                v = tryparse(Int, s)
+                if isnothing(v)
+                    error("atoi: entrada inválida: \"$s\"")
+                end
+                return v
+
+            elseif func_name == "atof"
+                if length(vals_args) != 1
+                    error("Função atof espera 1 argumento")
+                end
+                s = vals_args[1]
+                if !(s isa String)
+                    error("atof: argumento deve ser String, recebido $(typeof(s))")
+                end
+                v = tryparse(Float64, s)
+                if isnothing(v)
+                    error("atof: entrada inválida: \"$s\"")
+                end
+                return v
+
             elseif func_name == "scanf" || func_name == "gets"
-                print("⌨️  ")
                 input_str = readline()
                 
                 if func_name == "gets"
                     return input_str
                 else
-                    # Scanf tenta converter
                     val = tryparse(Int, input_str)
                     if isnothing(val) val = tryparse(Float64, input_str) end
                     if isnothing(val) val = input_str end
@@ -98,13 +121,13 @@ function avaliar_expressao(expr_json, env)
                 end
             end
 
-            # Chamada de Função do Usuário
+            # Função do usuário
             if !haskey(tabela_de_funcoes, func_name)
                 error("Função não definida: $func_name")
             end
             return executar_funcao_logica(tabela_de_funcoes[func_name], vals_args)
 
-        # --- ACESSO A ARRAY ---
+        # Acesso a array
         elseif t == "ArrayAccess"
             arr_node = expr_json["array"]
             idx = avaliar_expressao(expr_json["index"], env)
@@ -114,6 +137,19 @@ function avaliar_expressao(expr_json, env)
             i = Int(idx)
             if i < 0 || i+1 > length(arr_ref) error("Índice fora do limite: $i") end
             return arr_ref[i+1]
+
+        # Acesso a campo
+        elseif t == "FieldAccess"
+            obj_node = expr_json["object"]
+            field = expr_json["field"]
+            obj_val = isa(obj_node, String) ? env[obj_node] : avaliar_expressao(obj_node, env)
+            if obj_val isa Dict{String,Any}
+                if !haskey(obj_val, field)
+                    error("Campo '$field' inexistente")
+                end
+                return obj_val[field]
+            end
+            error("Acesso de campo em tipo não suportado")
         end
     end
     error("Expressão desconhecida: $expr_json")
@@ -128,20 +164,19 @@ function executar_statements(statements, env)
     return nothing
 end
 
-# Executa um statement individual
+# Executa um statement
 function executar_statement(stmt, env)
     stmt_type = get(stmt, "type", nothing)
 
     if stmt_type == "Declaration"
         var_name = stmt["name"]
         val_expr = get(stmt, "value", nothing)
-        tipo_declarado = get(stmt, "varType", "int") # Padrão int se não especificado
+        tipo_declarado = get(stmt, "varType", "int")
         
         # Guardar tipo para uso futuro (opcional)
         # tabela_de_tipos[var_name] = tipo_declarado 
 
         if get(stmt, "isArray", false)
-            # ... (Lógica de array igual) ...
             size = stmt["size"]
             env[var_name] = zeros(Int, size)
             if !isnothing(val_expr) && isa(val_expr, Array)
@@ -150,32 +185,37 @@ function executar_statement(stmt, env)
                 end
             end
         else
-            # --- CORREÇÃO DE TIPOS (CASTING) ---
             if !isnothing(val_expr)
-                valor_bruto = avaliar_expressao(val_expr, env)
-                
-                # Conversão forçada baseada no tipo C
-                if tipo_declarado == "int"
-                    # Se for float (ex: 5.5), trunca para Int (5)
-                    # Se for string ou char, tenta converter
-                    if isa(valor_bruto, Number)
-                        env[var_name] = Int(floor(valor_bruto))
-                    else
-                        env[var_name] = valor_bruto # Deixa passar se não for número
+                if isa(val_expr, AbstractDict) && !haskey(val_expr, "type")
+                    novo = Dict{String,Any}()
+                    for (k,v) in val_expr
+                        if k == "_active"
+                            novo[k] = v
+                        else
+                            novo[string(k)] = avaliar_expressao(v, env)
+                        end
                     end
-                elseif tipo_declarado == "float" || tipo_declarado == "double"
-                    env[var_name] = Float64(valor_bruto)
-                elseif tipo_declarado == "char"
-                    # Assume que já é char ou string
-                    env[var_name] = valor_bruto
+                    env[var_name] = novo
                 else
-                    # Outros tipos
-                    env[var_name] = valor_bruto
+                    valor_bruto = avaliar_expressao(val_expr, env)
+                    
+                    if tipo_declarado == "int"
+                        if isa(valor_bruto, Number)
+                            env[var_name] = Int(floor(valor_bruto))
+                        else
+                            env[var_name] = valor_bruto # Deixa passar se não for número
+                        end
+                    elseif tipo_declarado == "float" || tipo_declarado == "double"
+                        env[var_name] = Float64(valor_bruto)
+                    elseif tipo_declarado == "char"
+                        env[var_name] = valor_bruto
+                    else
+                        env[var_name] = valor_bruto
+                    end
                 end
             else
                 env[var_name] = nothing
             end
-            # -----------------------------------
         end
 
     elseif stmt_type == "Assignment"
@@ -186,9 +226,27 @@ function executar_statement(stmt, env)
             nome_arr = target["array"]
             idx = avaliar_expressao(target["index"], env)
             env[nome_arr][idx + 1] = valor
+        elseif isa(target, AbstractDict) && get(target, "type", nothing) == "FieldAccess"
+            obj_node = target["object"]
+            field = target["field"]
+            obj_val = isa(obj_node, String) ? env[obj_node] : avaliar_expressao(obj_node, env)
+            if !(obj_val isa Dict{String,Any})
+                error("Atribuição em campo de tipo não suportado")
+            end
+            # Se for uma union representada com campo ativo, zera demais
+            if haskey(obj_val, "_active")
+                # Limpa outros campos
+                for k in keys(obj_val)
+                    if k != field && k != "_active"
+                        obj_val[k] = nothing
+                    end
+                end
+                obj_val[field] = valor
+                obj_val["_active"] = field
+            else
+                obj_val[field] = valor
+            end
         else
-            # Aqui poderíamos checar o tipo da variável já existente para forçar conversão também
-            # Mas vamos simplificar e permitir troca dinâmica por enquanto
             env[target] = valor
         end
 
@@ -198,7 +256,6 @@ function executar_statement(stmt, env)
     elseif stmt_type == "Return"
         return avaliar_expressao(stmt["value"], env)
 
-    # ... (Os blocos If, While, For, Switch continuam IGUAIS ao código anterior) ...
     elseif stmt_type == "If" || stmt_type == "IfElse"
         cond = avaliar_expressao(stmt["condition"], env)
         if cond == true || cond != 0
@@ -211,6 +268,16 @@ function executar_statement(stmt, env)
         while avaliar_expressao(stmt["condition"], env) != 0
             ret = executar_statements(stmt["body"], env)
             if !isnothing(ret) return ret end
+        end
+
+    elseif stmt_type == "DoWhile"
+        while true
+            ret = executar_statements(stmt["body"], env)
+            if !isnothing(ret) return ret end
+            cond_val = avaliar_expressao(stmt["condition"], env)
+            if cond_val == 0 || cond_val == false
+                break
+            end
         end
 
     elseif stmt_type == "For"
@@ -255,15 +322,15 @@ function executar_statement(stmt, env)
     return nothing
 end
 
-# Cria escopo e executa função
+# Executa uma função
 function executar_funcao_logica(func_json, args_values=[])
     nome = func_json["name"]
-    tipo_retorno = get(func_json, "returnType", "int") # Pega o tipo de retorno
+    tipo_retorno = get(func_json, "returnType", "int")
 
-    # 1. Cria Escopo
+    # Escopo local
     local_env = Dict{String, Any}()
     
-    # 2. Argumentos
+    # Argumentos
     param_names = get(func_json, "params", String[])
     if length(args_values) != length(param_names)
         error("Erro na chamada de '$nome': Esperava $(length(param_names)) argumentos.")
@@ -272,16 +339,15 @@ function executar_funcao_logica(func_json, args_values=[])
         local_env[param_names[i]] = args_values[i]
     end
     
-    # 3. Executa
+    # Executa corpo
     ret = executar_statements(func_json["body"], local_env)
     
-    # 4. Tratamento do Retorno VOID
+    # Retorno void
     if tipo_retorno == "void"
-        # Se for void, retornamos 'nothing' (ou 0 se preferir, mas 'nothing' é mais correto semanticamente)
         return nothing
     end
 
-    # Se não for void e não retornou nada, retornamos 0 (padrão C)
+    # Padrão C: 0 se não retornou
     return isnothing(ret) ? 0 : ret
 end
 
@@ -292,7 +358,7 @@ function main()
     end
     
     ast = JSON.parsefile(ARGS[1])
-    println("📦 Carregando funções...")
+    println("Carregando funções...")
     for func in ast
         if func["type"] == "Function"
             tabela_de_funcoes[func["name"]] = func
@@ -300,11 +366,24 @@ function main()
     end
     
     if haskey(tabela_de_funcoes, "main")
-        println("\n🚀 Execução Iniciada")
-        res = executar_funcao_logica(tabela_de_funcoes["main"])
-        println("\n✅ Resultado Final: $res")
+        println("\nExecução Iniciada")
+        try
+            res = executar_funcao_logica(tabela_de_funcoes["main"])
+            println("\nResultado Final: $res")
+        catch e
+            # Erro amigável
+            if e isa MethodError
+                funcname = try string(getfield(e, :f)) catch; "função" end
+                argtypes = try join([string(typeof(a)) for a in getfield(e, :args)], ", ") catch; "tipos desconhecidos" end
+                println("\nErro: Operação inválida: $(funcname) com argumentos de tipos ($(argtypes))")
+            elseif e isa ErrorException
+                println("\nErro: $(getfield(e, :msg))")
+            else
+                println("\nErro: $(e)")
+            end
+        end
     else
-        println("❌ Erro: Função 'main' não encontrada.")
+        println("Erro: Função 'main' não encontrada.")
     end
 end
 
