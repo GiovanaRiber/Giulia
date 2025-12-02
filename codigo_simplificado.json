@@ -1,26 +1,6 @@
 [
   {
     "type": "Function",
-    "name": "soma",
-    "returnType": "int",
-    "params": [
-      "x",
-      "y"
-    ],
-    "body": [
-      {
-        "type": "Return",
-        "value": {
-          "type": "BinaryOp",
-          "op": "+",
-          "left": "x",
-          "right": "y"
-        }
-      }
-    ]
-  },
-  {
-    "type": "Function",
     "name": "main",
     "returnType": "int",
     "params": [],
@@ -28,28 +8,129 @@
       {
         "type": "Declaration",
         "varType": "int",
-        "name": "r",
+        "name": "arr",
+        "value": null,
+        "isArray": true,
+        "size": 5
+      },
+      {
+        "type": "Assignment",
+        "name": {
+          "type": "ArrayAccess",
+          "array": "arr",
+          "index": 0
+        },
+        "value": 10
+      },
+      {
+        "type": "Assignment",
+        "name": {
+          "type": "ArrayAccess",
+          "array": "arr",
+          "index": 1
+        },
+        "value": 20
+      },
+      {
+        "type": "Assignment",
+        "name": {
+          "type": "ArrayAccess",
+          "array": "arr",
+          "index": 2
+        },
+        "value": 30
+      },
+      {
+        "type": "Assignment",
+        "name": {
+          "type": "ArrayAccess",
+          "array": "arr",
+          "index": 3
+        },
         "value": {
-          "type": "Call",
-          "callee": "soma",
-          "args": [
-            2,
-            3
-          ]
+          "type": "BinaryOp",
+          "op": "+",
+          "left": {
+            "type": "ArrayAccess",
+            "array": "arr",
+            "index": 0
+          },
+          "right": {
+            "type": "ArrayAccess",
+            "array": "arr",
+            "index": 1
+          }
+        }
+      },
+      {
+        "type": "Assignment",
+        "name": {
+          "type": "ArrayAccess",
+          "array": "arr",
+          "index": 4
+        },
+        "value": {
+          "type": "BinaryOp",
+          "op": "*",
+          "left": {
+            "type": "ArrayAccess",
+            "array": "arr",
+            "index": 2
+          },
+          "right": 2
+        }
+      },
+      {
+        "type": "Declaration",
+        "varType": "int",
+        "name": "soma",
+        "value": {
+          "type": "BinaryOp",
+          "op": "+",
+          "left": {
+            "type": "BinaryOp",
+            "op": "+",
+            "left": {
+              "type": "BinaryOp",
+              "op": "+",
+              "left": {
+                "type": "BinaryOp",
+                "op": "+",
+                "left": {
+                  "type": "ArrayAccess",
+                  "array": "arr",
+                  "index": 0
+                },
+                "right": {
+                  "type": "ArrayAccess",
+                  "array": "arr",
+                  "index": 1
+                }
+              },
+              "right": {
+                "type": "ArrayAccess",
+                "array": "arr",
+                "index": 2
+              }
+            },
+            "right": {
+              "type": "ArrayAccess",
+              "array": "arr",
+              "index": 3
+            }
+          },
+          "right": {
+            "type": "ArrayAccess",
+            "array": "arr",
+            "index": 4
+          }
         },
         "isArray": false,
         "size": null
       },
       {
-        "type": "Call",
-        "callee": "printf",
-        "args": [
-          "r"
-        ]
-      },
-      {
         "type": "Return",
-        "value": 0
+        "value": "soma"
       }
     ]
   }

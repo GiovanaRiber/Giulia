@@ -1,0 +1,40 @@
+// Função Void
+void mostrar_msg() {
+    puts("--- Calculadora de IMC ---");
+}
+
+// Função Float
+float calcular_imc(float peso, float altura) {
+    return peso / (altura * altura);
+}
+
+int main() {
+    mostrar_msg();
+    
+    puts("Digite seu peso (kg):");
+    // Teste de conversão: se digitar "80", vira float 80.0
+    float peso = scanf(); 
+    
+    puts("Digite sua altura (m):");
+    float altura = scanf();
+    
+    float imc = calcular_imc(peso, altura);
+    
+    printf("Seu IMC e:", imc);
+    
+    // Teste de Int (truncamento)
+    int imc_inteiro = imc;
+    printf("IMC arredondado (int):", imc_inteiro);
+    
+    if (imc < 18.5) {
+        puts("Abaixo do peso");
+    } else {
+        if (imc < 25.0) {
+            puts("Peso normal");
+        } else {
+            puts("Acima do peso");
+        }
+    }
+    
+    return 0;
+}
